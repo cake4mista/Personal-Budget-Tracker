@@ -1,41 +1,42 @@
 package com.example.budgettracker.model;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.time.LocalDate;
 
 @Document(collection = "expenses")
 public class Expense {
-
     @Id
     private String id;
-
+    private String username;  // Owner of the expense
     private String description;
+    private double amount;
+    private String date;
 
-    private Double amount;
-
-    private LocalDate expenseDate;
-
-    @DBRef
-    private Category category;
-
+    // Constructors
     public Expense() {}
 
-    public Expense(String description, Double amount, LocalDate expenseDate, Category category) {
+    public Expense(String username, String description, double amount, String date) {
+        this.username = username;
         this.description = description;
         this.amount = amount;
-        this.expenseDate = expenseDate;
-        this.category = category;
+        this.date = date;
     }
 
+    // Getters and Setters
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getDescription() {
@@ -46,27 +47,19 @@ public class Expense {
         this.description = description;
     }
 
-    public Double getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
-    public LocalDate getExpenseDate() {
-        return expenseDate;
+    public String getDate() {
+        return date;
     }
 
-    public void setExpenseDate(LocalDate expenseDate) {
-        this.expenseDate = expenseDate;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setDate(String date) {
+        this.date = date;
     }
 }

@@ -1,12 +1,13 @@
 package com.example.budgettracker.controller;
 
+import com.example.budgettracker.dto.ExpenseDto;
 import com.example.budgettracker.model.Expense;
 import com.example.budgettracker.service.ExpenseService;
-import com.example.budgettracker.dto.ExpenseDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -19,33 +20,29 @@ public class ExpenseController {
         this.expenseService = expenseService;
     }
 
-    @PostMapping
-    public ResponseEntity<Expense> addExpense(@RequestBody ExpenseDto expenseDto) {
-        Expense expense = new Expense(
-                expenseDto.getDescription(),
-                expenseDto.getAmount(),
-                LocalDate.parse(expenseDto.getExpenseDate()),
-                null // The category must be fetched and set here if required
-        );
-        return ResponseEntity.ok(expenseService.addExpense(expense));
-    }
-
     @GetMapping
-    public ResponseEntity<List<Expense>> getAllExpenses() {
-        return ResponseEntity.ok(expenseService.getAllExpenses());
+    public ResponseEntity<List<Expense>> getExpenses() {
+        String username = getAuthenticatedUsername();
+        List<Expense> expenses = expenseService.getExpensesByUser(username);
+        return ResponseEntity.ok(expenses);
     }
 
-    @GetMapping("/range")
-    public ResponseEntity<List<Expense>> getExpensesByDateRange(
-            @RequestParam String startDate, @RequestParam String endDate) {
-        return ResponseEntity.ok(
-                expenseService.getExpensesByDateRange(LocalDate.parse(startDate), LocalDate.parse(endDate))
-        );
+    @PostMapping
+    public ResponseEntity<Expense> createExpense(@RequestBody ExpenseDto expenseDto) {
+        String username = getAuthenticatedUsername();
+        Expense expense = expenseService.createExpense(username, expenseDto);
+        return ResponseEntity.ok(expense);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteExpense(@PathVariable String id) {
-        expenseService.deleteExpense(id);
+        String username = getAuthenticatedUsername();
+        expenseService.deleteExpense(id, username);
         return ResponseEntity.ok("Expense deleted successfully.");
+    }
+
+    private String getAuthenticatedUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getName();
     }
 }

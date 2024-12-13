@@ -1,32 +1,31 @@
 package com.example.budgettracker.dto;
 
 public class BudgetDto {
-    private String id;
-    private Double monthlyLimit;
-    private String budgetMonth; // ISO format (e.g., "2024-06")
+    private String month;
+    private double amount;
+
+    // Constructors
+    public BudgetDto() {}
+
+    public BudgetDto(String month, double amount) {
+        this.month = month;
+        this.amount = amount;
+    }
 
     // Getters and Setters
-    public String getId() {
-        return id;
+    public String getMonth() {
+        return month;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setMonth(String month) {
+        this.month = month;
     }
 
-    public Double getMonthlyLimit() {
-        return monthlyLimit;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setMonthlyLimit(Double monthlyLimit) {
-        this.monthlyLimit = monthlyLimit;
-    }
-
-    public String getBudgetMonth() {
-        return budgetMonth;
-    }
-
-    public void setBudgetMonth(String budgetMonth) {
-        this.budgetMonth = budgetMonth;
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 }

@@ -1,13 +1,14 @@
 package com.example.budgettracker.controller;
 
+import com.example.budgettracker.dto.BudgetDto;
 import com.example.budgettracker.model.Budget;
 import com.example.budgettracker.service.BudgetService;
-import com.example.budgettracker.dto.BudgetDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.YearMonth;
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/budgets")
@@ -19,15 +20,39 @@ public class BudgetController {
         this.budgetService = budgetService;
     }
 
-    @PostMapping
-    public ResponseEntity<Budget> setBudget(@RequestBody BudgetDto budgetDto) {
-        Budget budget = new Budget(budgetDto.getMonthlyLimit(), YearMonth.parse(budgetDto.getBudgetMonth()));
-        return ResponseEntity.ok(budgetService.setMonthlyBudget(budget));
+    @GetMapping
+    public ResponseEntity<List<Budget>> getBudgets() {
+        String username = getAuthenticatedUsername();
+        List<Budget> budgets = budgetService.getBudgetsByUser(username);
+        return ResponseEntity.ok(budgets);
     }
 
-    @GetMapping
-    public ResponseEntity<Budget> getBudgetByMonth(@RequestParam String month) {
-        Optional<Budget> budget = budgetService.getBudgetByMonth(YearMonth.parse(month));
-        return budget.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @PostMapping
+    public ResponseEntity<?> createBudget(@RequestBody BudgetDto budgetDto) {
+        System.out.println("DEBUG: Received Payload - Month: " + budgetDto.getMonth() + ", Amount: " + budgetDto.getAmount());
+
+        if (budgetDto.getMonth() == null || budgetDto.getMonth().trim().isEmpty() || budgetDto.getAmount() <= 0) {
+            System.out.println("ERROR: Invalid budget data.");
+            return ResponseEntity.badRequest().body("Invalid budget data.");
+        }
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("DEBUG: Authenticated Username: " + username);
+
+        Budget createdBudget = budgetService.createBudget(username, budgetDto);
+        System.out.println("DEBUG: Saved Budget ID: " + createdBudget.getId());
+        return ResponseEntity.ok(createdBudget);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBudget(@PathVariable String id) {
+        String username = getAuthenticatedUsername();
+        budgetService.deleteBudget(id, username);
+        return ResponseEntity.ok("Budget deleted successfully.");
+    }
+
+    private String getAuthenticatedUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getName();
     }
 }

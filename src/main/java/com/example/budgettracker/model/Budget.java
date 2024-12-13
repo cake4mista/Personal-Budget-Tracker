@@ -3,25 +3,24 @@ package com.example.budgettracker.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.YearMonth;
-
-@Document(collection = "budgets")
+@Document(collection = "budgets") // Ensure collection name matches exactly
 public class Budget {
-
     @Id
     private String id;
+    private String username;
+    private String month;
+    private double amount;
 
-    private Double monthlyLimit;
-
-    private YearMonth budgetMonth;
-
+    // Constructors
     public Budget() {}
 
-    public Budget(Double monthlyLimit, YearMonth budgetMonth) {
-        this.monthlyLimit = monthlyLimit;
-        this.budgetMonth = budgetMonth;
+    public Budget(String username, String month, double amount) {
+        this.username = username;
+        this.month = month;
+        this.amount = amount;
     }
 
+    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -30,19 +29,27 @@ public class Budget {
         this.id = id;
     }
 
-    public Double getMonthlyLimit() {
-        return monthlyLimit;
+    public String getUsername() {
+        return username;
     }
 
-    public void setMonthlyLimit(Double monthlyLimit) {
-        this.monthlyLimit = monthlyLimit;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public YearMonth getBudgetMonth() {
-        return budgetMonth;
+    public String getMonth() {
+        return month;
     }
 
-    public void setBudgetMonth(YearMonth budgetMonth) {
-        this.budgetMonth = budgetMonth;
+    public void setMonth(String month) {
+        this.month = month;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 }
