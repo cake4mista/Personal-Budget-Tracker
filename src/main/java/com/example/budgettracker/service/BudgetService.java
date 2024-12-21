@@ -6,7 +6,9 @@ import com.example.budgettracker.model.Budget;
 import java.util.List;
 
 public interface BudgetService {
-    List<Budget> getBudgetsByUser(String username);
-    Budget createBudget(String username, BudgetDto budgetDto);
-    void deleteBudget(String id, String username);
+    Budget createBudget(String userId, BudgetDto budgetDto);
+    List<Budget> getBudgetsByUserId(String userId);
+    List<Budget> getAllBudgets();
+    void deleteBudget(String userId, String budgetId); // New method
 }
+

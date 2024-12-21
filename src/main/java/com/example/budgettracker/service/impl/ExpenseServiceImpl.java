@@ -4,43 +4,40 @@ import com.example.budgettracker.dto.ExpenseDto;
 import com.example.budgettracker.model.Expense;
 import com.example.budgettracker.repository.ExpenseRepository;
 import com.example.budgettracker.service.ExpenseService;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
 
-    private final ExpenseRepository expenseRepository;
-
-    public ExpenseServiceImpl(ExpenseRepository expenseRepository) {
-        this.expenseRepository = expenseRepository;
-    }
+    @Autowired
+    private ExpenseRepository expenseRepository;
 
     @Override
-    public List<Expense> getExpensesByUser(String username) {
-        return expenseRepository.findByUsername(username);
-    }
-
-    @Override
-    public Expense createExpense(String username, ExpenseDto expenseDto) {
+    public Expense createExpense(String userId, ExpenseDto expenseDto) {
         Expense expense = new Expense();
-        expense.setUsername(username);
+        expense.setUserId(userId);
+        expense.setDate(expenseDto.getDate());
+        expense.setCategory(expenseDto.getCategory());
         expense.setDescription(expenseDto.getDescription());
         expense.setAmount(expenseDto.getAmount());
-        expense.setDate(expenseDto.getDate());
         return expenseRepository.save(expense);
     }
 
     @Override
-    public void deleteExpense(String id, String username) {
-        Optional<Expense> expense = expenseRepository.findById(id);
-        if (expense.isPresent() && expense.get().getUsername().equals(username)) {
-            expenseRepository.deleteById(id);
-        } else {
-            throw new AccessDeniedException("Unauthorized to delete this expense.");
+    public List<Expense> getExpensesByUserId(String userId) {
+        return expenseRepository.findByUserId(userId);
+    }
+
+    @Override
+    public void deleteExpense(String userId, String id) {
+        Expense expense = expenseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Expense not found with ID: " + id));
+        if (!expense.getUserId().equals(userId)) {
+            throw new RuntimeException("You can only delete your own expenses.");
         }
+        expenseRepository.deleteById(id);
     }
 }

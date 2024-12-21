@@ -1,41 +1,21 @@
 package com.example.budgettracker.dto;
 
 public class ExpenseDto {
-    private String description;
-    private double amount;
-    private String date;
-
-    // Constructors
-    public ExpenseDto() {}
-
-    public ExpenseDto(String description, double amount, String date) {
-        this.description = description;
-        this.amount = amount;
-        this.date = date;
-    }
+    private String date;        // Date of the expense
+    private String category;    // Category (e.g., Food, Transport)
+    private String description; // Expense description
+    private Double amount;      // Expense amount
 
     // Getters and Setters
-    public String getDescription() {
-        return description;
-    }
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public double getAmount() {
-        return amount;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
 }

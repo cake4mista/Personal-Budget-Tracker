@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface BudgetRepository extends MongoRepository<Budget, String> {
-    List<Budget> findByUsername(String username);
+    List<Budget> findByUserId(String userId);
 }

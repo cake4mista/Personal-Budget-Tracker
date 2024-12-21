@@ -21,7 +21,7 @@ public class ExpenseWindow {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
 
-        String[] columnNames = {"ID", "Description", "Amount", "Date"};
+        String[] columnNames = {"ID", "Description", "Amount", "Date", "Category"};
         tableModel = new DefaultTableModel(columnNames, 0);
         expenseTable = new JTable(tableModel);
 
@@ -59,6 +59,9 @@ public class ExpenseWindow {
         return token.replaceAll("\\s+", "").replaceAll(".*\"token\":\"([^\"]+)\".*", "$1");
     }
 
+    /**
+     * Fetches expenses from the server and populates the table.
+     */
     private void fetchExpenses() {
         try {
             URL url = new URL("http://localhost:8080/api/expenses");
@@ -67,22 +70,75 @@ public class ExpenseWindow {
             conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
 
             Scanner scanner = new Scanner(conn.getInputStream());
-            tableModel.setRowCount(0);
+            StringBuilder jsonResponse = new StringBuilder();
             while (scanner.hasNextLine()) {
-                String[] data = scanner.nextLine().split(",");
-                tableModel.addRow(data);
+                jsonResponse.append(scanner.nextLine());
+            }
+            scanner.close();
+
+            // Parse the JSON response
+            org.json.JSONArray expenses = new org.json.JSONArray(jsonResponse.toString());
+            tableModel.setRowCount(0); // Clear the table
+            for (int i = 0; i < expenses.length(); i++) {
+                org.json.JSONObject expense = expenses.getJSONObject(i);
+                tableModel.addRow(new Object[]{
+                        expense.getString("id"),
+                        expense.getString("description"),
+                        expense.getDouble("amount"),
+                        expense.getString("date"),
+                        expense.getString("category")
+                });
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error fetching expenses: " + e.getMessage());
         }
     }
 
+    /**
+     * Adds a new expense entry to the server.
+     */
     private void addExpense() {
         try {
             String description = JOptionPane.showInputDialog("Enter Description:");
-            String amount = JOptionPane.showInputDialog("Enter Amount:");
+            String amountStr = JOptionPane.showInputDialog("Enter Amount:");
             String date = JOptionPane.showInputDialog("Enter Date (YYYY-MM-DD):");
 
+            // Categories as dropdown options
+            String[] categories = {"Food", "Transport", "Utilities", "Entertainment", "Other"};
+            String category = (String) JOptionPane.showInputDialog(
+                    null,
+                    "Select Category:",
+                    "Category",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    categories,
+                    categories[0]
+            );
+
+            // Validate input
+            if (description == null || description.trim().isEmpty() ||
+                    amountStr == null || amountStr.trim().isEmpty() ||
+                    date == null || date.trim().isEmpty() ||
+                    category == null) {
+                JOptionPane.showMessageDialog(null, "All fields are required.");
+                return;
+            }
+
+            double amount;
+            try {
+                amount = Double.parseDouble(amountStr);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Invalid amount. Please enter a numeric value.");
+                return;
+            }
+
+            // Prepare JSON payload
+            String jsonInput = String.format(
+                    "{\"description\":\"%s\", \"amount\":%.2f, \"date\":\"%s\", \"category\":\"%s\"}",
+                    description, amount, date, category
+            );
+
+            // Send the POST request
             URL url = new URL("http://localhost:8080/api/expenses");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
@@ -90,17 +146,25 @@ public class ExpenseWindow {
             conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
             conn.setDoOutput(true);
 
-            String jsonInput = String.format("{\"description\":\"%s\", \"amount\":%s, \"date\":\"%s\"}", description, amount, date);
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(jsonInput.getBytes());
+                os.flush();
             }
 
-            fetchExpenses();
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                JOptionPane.showMessageDialog(null, "Expense added successfully!");
+                fetchExpenses();
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to add expense. Response code: " + conn.getResponseCode());
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error adding expense: " + e.getMessage());
         }
     }
 
+    /**
+     * Deletes the selected expense entry from the server.
+     */
     private void deleteExpense() {
         try {
             int selectedRow = expenseTable.getSelectedRow();
@@ -115,7 +179,12 @@ public class ExpenseWindow {
             conn.setRequestMethod("DELETE");
             conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
 
-            fetchExpenses();
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                JOptionPane.showMessageDialog(null, "Expense deleted successfully!");
+                fetchExpenses();
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to delete expense. Response code: " + conn.getResponseCode());
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error deleting expense: " + e.getMessage());
         }

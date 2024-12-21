@@ -7,59 +7,40 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Expense {
     @Id
     private String id;
-    private String username;  // Owner of the expense
-    private String description;
-    private double amount;
-    private String date;
+
+    private String userId;      // Derived from JWT
+    private String date;        // Date of the expense
+    private String category;    // Category (e.g., Food, Transport)
+    private String description; // Expense description
+    private Double amount;      // Expense amount
 
     // Constructors
     public Expense() {}
 
-    public Expense(String username, String description, double amount, String date) {
-        this.username = username;
+    public Expense(String userId, String date, String category, String description, Double amount) {
+        this.userId = userId;
+        this.date = date;
+        this.category = category;
         this.description = description;
         this.amount = amount;
-        this.date = date;
     }
 
     // Getters and Setters
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
 }

@@ -3,9 +3,10 @@ package com.example.budgettracker.controller;
 import com.example.budgettracker.dto.BudgetDto;
 import com.example.budgettracker.model.Budget;
 import com.example.budgettracker.service.BudgetService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,45 +15,28 @@ import java.util.List;
 @RequestMapping("/api/budgets")
 public class BudgetController {
 
-    private final BudgetService budgetService;
+    @Autowired
+    private BudgetService budgetService;
 
-    public BudgetController(BudgetService budgetService) {
-        this.budgetService = budgetService;
+    @PostMapping("/create")
+    public ResponseEntity<Budget> createBudget(@RequestBody BudgetDto budgetDto,
+                                               @AuthenticationPrincipal UserDetails userDetails) {
+        String userId = userDetails.getUsername(); // JWT-derived userId
+        return ResponseEntity.ok(budgetService.createBudget(userId, budgetDto));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Budget>> getBudgets() {
-        String username = getAuthenticatedUsername();
-        List<Budget> budgets = budgetService.getBudgetsByUser(username);
-        return ResponseEntity.ok(budgets);
+    @GetMapping("/get")
+    public ResponseEntity<List<Budget>> getBudgetsByUserId(@AuthenticationPrincipal UserDetails userDetails) {
+        String userId = userDetails.getUsername();
+        return ResponseEntity.ok(budgetService.getBudgetsByUserId(userId));
     }
 
-    @PostMapping
-    public ResponseEntity<?> createBudget(@RequestBody BudgetDto budgetDto) {
-        System.out.println("DEBUG: Received Payload - Month: " + budgetDto.getMonth() + ", Amount: " + budgetDto.getAmount());
-
-        if (budgetDto.getMonth() == null || budgetDto.getMonth().trim().isEmpty() || budgetDto.getAmount() <= 0) {
-            System.out.println("ERROR: Invalid budget data.");
-            return ResponseEntity.badRequest().body("Invalid budget data.");
-        }
-
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        System.out.println("DEBUG: Authenticated Username: " + username);
-
-        Budget createdBudget = budgetService.createBudget(username, budgetDto);
-        System.out.println("DEBUG: Saved Budget ID: " + createdBudget.getId());
-        return ResponseEntity.ok(createdBudget);
+    @DeleteMapping("/delete/{budgetId}")
+    public ResponseEntity<String> deleteBudget(@PathVariable String budgetId,
+                                               @AuthenticationPrincipal UserDetails userDetails) {
+        String userId = userDetails.getUsername();
+        budgetService.deleteBudget(userId, budgetId);
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBudget(@PathVariable String id) {
-        String username = getAuthenticatedUsername();
-        budgetService.deleteBudget(id, username);
-        return ResponseEntity.ok("Budget deleted successfully.");
-    }
-
-    private String getAuthenticatedUsername() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getName();
-    }
 }
